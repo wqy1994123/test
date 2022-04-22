@@ -4,5 +4,5 @@ import org.springframework.stereotype.Service;
 
 public interface BucketService {
 
-    public void acquire();
+    public int acquire();
 }

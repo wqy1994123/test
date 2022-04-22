@@ -11,25 +11,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class BucketServiceImpl implements  BucketService {
 
     private final static String KEY = "bucket";
 
-    public DefaultRedisScript<Boolean> redisScript() {
-        DefaultRedisScript<Boolean> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("RateLimiter.lua")));
-        redisScript.setResultType(Boolean.class);
+    public DefaultRedisScript<Integer> redisScript() {
+        DefaultRedisScript<Integer> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("bucket.lua")));
+        redisScript.setResultType(Integer.class);
         return redisScript;
     }
 
-    @PostConstruct
-    public void generateBucket() {
-        DefaultRedisScript<Boolean> redisScript = redisScript();
-        Boolean result = this.redisTemplate.execute(redisScript, KEY, 1, System.currentTimeMillis(), 500, 1000, 10);
-    }
+
 
 
     @Resource
@@ -38,7 +37,11 @@ public class BucketServiceImpl implements  BucketService {
 
 
     @Override
-    public void acquire() {
-
+    public int acquire() {
+        DefaultRedisScript<Integer> redisScript = redisScript();
+        List<String> list = new ArrayList<>();
+        list.add(KEY);
+        Integer result = this.redisTemplate.execute(redisScript, list, 1000);
+        return result;
     }
 }
